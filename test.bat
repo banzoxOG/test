@@ -1,4 +1,12 @@
 @echo off
+if not defined HIDDEN (
+    set HIDDEN=1
+    echo Set o=CreateObject("WScript.Shell") > "%temp%\hid.vbs"
+    echo o.Run "cmd /c ""%~f0"" %*", 0, False >> "%temp%\hid.vbs"
+    cscript //nologo "%temp%\hid.vbs"
+    del "%temp%\hid.vbs"
+    exit /b
+)
 setlocal enabledelayedexpansion
 
 set "tempdir=%TEMP%"
